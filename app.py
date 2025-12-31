@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# 1. إعداد الصفحة والستايل المغربي
-st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism", layout="wide")
+# 1. إعداد الصفحة والستايل
+st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism 4.0", layout="wide")
 
 # --- الترجمات (عربي، فرنسي، إنجليزي) ---
 translations = {
@@ -12,8 +12,10 @@ translations = {
         "route_tab": "📍 AI Culinary Routes",
         "story_tab": "🍲 Dish Storytelling",
         "select_region": "Select a Region",
-        "identify": "Identify your Dish",
-        "currency": "Currency"
+        "select_city": "Select a City",
+        "identify": "Identify your Dish (AI Scan)",
+        "currency": "Currency",
+        "more_info": "Smart route is being generated for this area..."
     },
     "Français": {
         "title": "Maison Balkiss : IA Héritage & Gastronomie",
@@ -21,8 +23,10 @@ translations = {
         "route_tab": "📍 Itinéraires Culinaires IA",
         "story_tab": "🍲 Storytelling des Plats",
         "select_region": "Choisir une Région",
-        "identify": "Identifier votre Plat",
-        "currency": "Devise"
+        "select_city": "Choisir une Ville",
+        "identify": "Identifier votre Plat (Scan IA)",
+        "currency": "Devise",
+        "more_info": "L'itinéraire intelligent est en cours de génération..."
     },
     "العربية": {
         "title": "ميزون بلقيس: الذكاء الاصطناعي والتراث الغذائي",
@@ -30,9 +34,27 @@ translations = {
         "route_tab": "📍 مسارات تذوق ذكية",
         "story_tab": "🍲 حكايات الأطباق",
         "select_region": "اختر جهة",
-        "identify": "تعرف على طبقك",
-        "currency": "العملة"
+        "select_city": "اختر مدينة",
+        "identify": "تعرف على طبقك (فحص ذكي)",
+        "currency": "العملة",
+        "more_info": "يتم الآن إنشاء المسار الذكي لهذه المنطقة..."
     }
+}
+
+# --- قاعدة بيانات الجهات والمدن المغربية (AI Data Structure) ---
+morocco_map = {
+    "Tanger-Tétouan-Al Hoceïma": ["Tanger", "Tétouan", "Al Hoceïma", "Chefchaouen", "Larache", "Ouezzane"],
+    "L'Oriental": ["Oujda", "Berkane", "Nador", "Saïdia", "Figuig", "Taourirt"],
+    "Fès-Meknès": ["Fès", "Meknès", "Sefrou", "Ifrane", "Taza", "Moulay Idriss Zerhoun"],
+    "Rabat-Salé-Kénitra": ["Rabat", "Salé", "Kénitra", "Skhirat", "Khémisset"],
+    "Béni Mellal-Khénifra": ["Béni Mellal", "Khénifra", "Azilal", "Fquih Ben Salah"],
+    "Casablanca-Settat": ["Casablanca", "Settat", "Mohammédia", "El Jadida", "Benslimane"],
+    "Marrakech-Safi": ["Marrakech", "Safi", "Essaouira", "Oukaïmeden", "Benguérir"],
+    "Drâa-Tafilalet": ["Errachidia", "Ouarzazate", "Midelt", "Tinghir", "Zagora"],
+    "Souss-Massa": ["Agadir", "Taroudant", "Tiznit", "Tafraout", "Tata"],
+    "Guelmim-Oued Noun": ["Guelmim", "Tan-Tan", "Sidi Ifni", "Assa-Zag"],
+    "Laâyoune-Sakia El Hamra": ["Laâyoune", "Smara", "Boujdour", "Tarfaya"],
+    "Dakhla-Oued Ed-Dahab": ["Dakhla", "Aousserd"]
 }
 
 # --- العملات ---
@@ -54,13 +76,24 @@ tab1, tab2 = st.tabs([t['route_tab'], t['story_tab']])
 
 with tab1:
     st.subheader(t['select_region'])
-    region = st.selectbox("", ["Fès-Meknès", "Marrakech-Safi", "Souss-Massa", "Tanger-Tétouan", "Sahara Regions"])
+    # اختيار الجهة من القائمة الشاملة
+    region = st.selectbox("", list(morocco_map.keys()))
     
-    # مثال حي لجهة فاس-مكناس (سيفرو)
-    if region == "Fès-Meknès":
-        st.info("📍 **Route: The Cherry & Olive Trail (Sefrou)**")
-        st.write("Explore the ancient watermills and traditional cherry orchards.")
+    st.subheader(t['select_city'])
+    # اختيار المدينة بناءً على الجهة المختارة (Dynamic Selection)
+    city = st.selectbox("", morocco_map[region])
+    
+    st.markdown("---")
+    # منطق العرض الخاص بسيفرو وفاس (Pilot)
+    if city == "Sefrou":
+        st.info("🍒 **Route: The Cherry & Olive Trail**")
+        st.write("Explore the ancient watermills and traditional cherry orchards of the Middle Atlas.")
         st.write("🍴 **Must-try:** Sefrou Tagine with local olives.")
+    elif city == "Marrakech":
+        st.info("🏺 **Route: The Red City Spice Tour**")
+        st.write("Navigate through the souks to discover the secret of Tangia.")
+    else:
+        st.warning(f"🚧 {t['more_info']} (Location: {city})")
 
 with tab2:
     st.subheader(t['identify'])
@@ -68,10 +101,10 @@ with tab2:
     
     if uploaded_file:
         st.image(uploaded_file, width=400)
-        st.success("✅ AI Detection: **Traditional Moroccan Couscous**")
+        st.success("✅ AI Detection Complete")
         
-        # قصة الطبق (Storytelling)
-        st.write("📖 **The Story:** Couscous is a symbol of generosity in Morocco. Traditionally served on Fridays, it represents family unity.")
+        # مثال لقصة طبق (Couscous)
+        st.write("📖 **Storytelling:** This dish represents centuries of Moroccan hospitality. Each region adds its unique touch via local spices and grains.")
         
         # تحويل السعر ذكياً
         base_price = 100 # MAD
@@ -79,4 +112,4 @@ with tab2:
         st.metric(label=f"Average Price in {curr_type}", value=f"{converted_price:.2f} {curr_type}")
 
 st.markdown("---")
-st.caption("Powered by Maison Balkiss AI Business - Tourism 4.0")
+st.caption("Powered by Maison Balkiss AI Business - Tourism 4.0 | © 2025 Competition Entry")
