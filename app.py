@@ -1,55 +1,82 @@
-
 import streamlit as st
-import sqlite3
 import pandas as pd
 
-# قاعدة البيانات
-conn = sqlite3.connect('maison_balkiss_pro.db', check_same_thread=False)
-c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS ai_projects 
-             (id INTEGER PRIMARY KEY, client TEXT, service TEXT, deadline TEXT, 
-              total REAL, advance REAL, status TEXT)''')
-conn.commit()
+# 1. إعداد الصفحة والستايل المغربي
+st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism", layout="wide")
 
-st.set_page_config(page_title="Maison Balkiss AI Business", layout="wide")
+# --- الترجمات (عربي، فرنسي، إنجليزي) ---
+translations = {
+    "English": {
+        "title": "Maison Balkiss: AI Heritage & Gastronomy",
+        "intro": "Experience Tourism 4.0: Discover Morocco's authentic flavors and stories.",
+        "route_tab": "📍 AI Culinary Routes",
+        "story_tab": "🍲 Dish Storytelling",
+        "select_region": "Select a Region",
+        "identify": "Identify your Dish",
+        "currency": "Currency"
+    },
+    "Français": {
+        "title": "Maison Balkiss : IA Héritage & Gastronomie",
+        "intro": "Vivez le Tourisme 4.0 : Découvrez les saveurs et histoires authentiques du Maroc.",
+        "route_tab": "📍 Itinéraires Culinaires IA",
+        "story_tab": "🍲 Storytelling des Plats",
+        "select_region": "Choisir une Région",
+        "identify": "Identifier votre Plat",
+        "currency": "Devise"
+    },
+    "العربية": {
+        "title": "ميزون بلقيس: الذكاء الاصطناعي والتراث الغذائي",
+        "intro": "عش تجربة السياحة 4.0: اكتشف النكهات والقصص المغربية الأصيلة.",
+        "route_tab": "📍 مسارات تذوق ذكية",
+        "story_tab": "🍲 حكايات الأطباق",
+        "select_region": "اختر جهة",
+        "identify": "تعرف على طبقك",
+        "currency": "العملة"
+    }
+}
 
-tech_services = ["AI & INNOVATION", "BRANDING & AI", "SMART TOURISM 4.0", "TECH ACADEMY 4.0", "ATELIERS", "Consulting"]
+# --- العملات ---
+currencies = {"MAD": 1.0, "USD": 0.1, "EUR": 0.09}
 
+# --- القائمة الجانبية (Sidebar) ---
 st.sidebar.title("👑 Maison Balkiss AI")
-admin_mode = st.sidebar.checkbox("🔒 Admin Dashboard")
+lang = st.sidebar.selectbox("🌐 Language", ["English", "Français", "العربية"])
+curr_type = st.sidebar.selectbox("💱 Currency", ["MAD", "USD", "EUR"])
 
-st.title("⚜️ AI Business Management System")
-tab1, tab2, tab3 = st.tabs(["🚀 New Project", "📅 Project Pipeline", "📊 Finance & Admin"])
+t = translations[lang]
+
+# --- العنوان الرئيسي ---
+st.title(f"⚜️ {t['title']}")
+st.markdown(f"**{t['intro']}**")
+
+# --- التبويبات الرئيسية ---
+tab1, tab2 = st.tabs([t['route_tab'], t['story_tab']])
 
 with tab1:
-    st.subheader("📩 تسجيل مشروع جديد")
-    with st.form("tech_form", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            client = st.text_input("👤 اسم العميل")
-            service = st.selectbox("🛠️ الخدمة", tech_services)
-            total = st.number_input("💰 الميزانية", min_value=0.0)
-        with c2:
-            deadline = st.date_input("📅 التسليم")
-            advance = st.number_input("💵 العربون", min_value=0.0)
-            curr = st.selectbox("💱 العملة", ["USD", "EUR", "MAD"])
-        
-        if st.form_submit_button("✅ حفظ المشروع"):
-            if client:
-                c.execute("INSERT INTO ai_projects (client, service, deadline, total, advance, status) VALUES (?, ?, ?, ?, ?, ?)",
-                          (client, service, deadline.strftime("%Y-%m-%d"), total, advance, "In Progress"))
-                conn.commit()
-                st.success(f"✅ تم تسجيل مشروع {service}!")
+    st.subheader(t['select_region'])
+    region = st.selectbox("", ["Fès-Meknès", "Marrakech-Safi", "Souss-Massa", "Tanger-Tétouan", "Sahara Regions"])
+    
+    # مثال حي لجهة فاس-مكناس (سيفرو)
+    if region == "Fès-Meknès":
+        st.info("📍 **Route: The Cherry & Olive Trail (Sefrou)**")
+        st.write("Explore the ancient watermills and traditional cherry orchards.")
+        st.write("🍴 **Must-try:** Sefrou Tagine with local olives.")
 
 with tab2:
-    st.subheader("📅 Project Pipeline")
-    df = pd.read_sql_query("SELECT client, service, deadline, status FROM ai_projects", conn)
-    st.dataframe(df, use_container_width=True)
+    st.subheader(t['identify'])
+    uploaded_file = st.file_uploader("Upload dish photo...", type=["jpg", "png", "jpeg"])
+    
+    if uploaded_file:
+        st.image(uploaded_file, width=400)
+        st.success("✅ AI Detection: **Traditional Moroccan Couscous**")
+        
+        # قصة الطبق (Storytelling)
+        st.write("📖 **The Story:** Couscous is a symbol of generosity in Morocco. Traditionally served on Fridays, it represents family unity.")
+        
+        # تحويل السعر ذكياً
+        base_price = 100 # MAD
+        converted_price = base_price * currencies[curr_type]
+        st.metric(label=f"Average Price in {curr_type}", value=f"{converted_price:.2f} {curr_type}")
 
-with tab3:
-    if admin_mode:
-        pwd = st.text_input("Password", type="password")
-        if pwd == "12345678ouafaa@":
-            full_df = pd.read_sql_query("SELECT * FROM ai_projects", conn)
-            st.dataframe(full_df, use_container_width=True)
-            st.metric("📈 إجمالي الأرباح", f"{full_df['total'].sum()} {curr}")
+st.markdown("---")
+st.caption("Powered by Maison Balkiss AI Business - Tourism 4.0")
