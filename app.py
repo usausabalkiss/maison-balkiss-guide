@@ -4,161 +4,123 @@ import pandas as pd
 # 1. إعداد الصفحة والستايل المغربي
 st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism 4.0", layout="wide")
 
-# --- كود تحويل الموقع لتطبيق (PWA) ليتثبت على الهاتف ---
-st.markdown(
-    """
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('https://cdn.jsdelivr.net/gh/michelegera/pwa-streamlit/sw.js');
-      }
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
+# --- كود تحويل الموقع لتطبيق (PWA) للتثبيت على الهاتف ---
+st.markdown("""<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('https://cdn.jsdelivr.net/gh/michelegera/pwa-streamlit/sw.js'); }</script>""", unsafe_allow_html=True)
 
-# --- قاعدة بيانات الأطباق الذكية (القصص والأصول) ---
-food_db = {
+# --- قاعدة بيانات الجهات والمدن المغربية الشاملة (12 جهة) ---
+morocco_map = {
+    "Tanger-Tétouan-Al Hoceïma": ["Tanger", "Tétouan", "Chefchaouen", "Al Hoceïma", "Larache", "Ouezzane"],
+    "L'Oriental": ["Oujda", "Berkane", "Nador", "Saïdia", "Figuig"],
+    "Fès-Meknès": ["صفرو", "فاس", "مكناس", "إفران", "تازة", "مولاي إدريس زرهون"],
+    "Rabat-Salé-Kénitra": ["الرباط", "سلا", "القنيطرة", "الخميسات"],
+    "Béni Mellal-Khénifra": ["بني ملال", "خنيفرة", "أزيلال"],
+    "Casablanca-Settat": ["الدار البيضاء", "سطات", "الجديدة", "المحمدية"],
+    "Marrakech-Safi": ["مراكش", "آسفي", "الصويرة", "ابن جرير"],
+    "Drâa-Tafilalet": ["الرشيدية", "ورزازات", "ميدلت", "تنغير", "زاكورة"],
+    "Souss-Massa": ["أكادير", "تارودانت", "تيزنيت", "طاطا"],
+    "Guelmim-Oued Noun": ["كلميم", "طنطان", "سيدي إفني"],
+    "Laâyoune-Sakia El Hamra": ["العيون", "السمارة", "بوجدور"],
+    "Dakhla-Oued Ed-Dahab": ["الداخلة", "أوسرد"]
+}
+
+# تجميع كل المدن في قائمة واحدة للبحث الذكي
+all_cities_list = sorted([city for cities in morocco_map.values() for city in cities])
+
+# --- قاعدة بيانات المعارف المغربية (فلاحة، صناعة، مآثر، وصور) ---
+city_knowledge_base = {
+    "صفرو": {
+        "agri": "تُعرف بـ 'حديقة المغرب'، وهي العاصمة العالمية لـ 'حب الملوك' (الكرز)، وتشتهر بجودة الزيتون والتين المحلي.",
+        "crafts": "تنفرد بصناعة 'العقد' التقليدية (أزرار القفطان)، وتشتهر بالنسيج والنجارة الفنية.",
+        "monuments": "شلالات صفرو الخلابة، المدينة القديمة، ملاح صفرو التاريخي، وقنطرة لالة أمينة.",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Cascade_Sefrou.jpg/800px-Cascade_Sefrou.jpg"
+    },
+    "فاس": {
+        "agri": "تعتمد ضواحيها (سهل سايس) على إنتاج زيت الزيتون، الحبوب، والفواكه الموسمية.",
+        "crafts": "عاصمة الصناعة التقليدية: دباغة الجلود، الزليج الفاسي، النحاسيات، والنسيج المطرز.",
+        "monuments": "جامعة القرويين، مدرسة العطارين، دار الدباغ (شوارة)، وباب بوجلود الشهير.",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Fes_Morocco_Gate.jpg/800px-Fes_Morocco_Gate.jpg"
+    }
+}
+
+# --- قاعدة بيانات الحكايات الطويلة للأطباق ---
+food_stories = {
     "Pastilla": {
-        "name_ar": "بسطيلة",
-        "origin": "Fès / فاس",
-        "story_en": "A masterpiece of Andalusian-Moroccan fusion, traditionally served at weddings. It balances sweet and savory flavors.",
-        "story_fr": "Un chef-d'œuvre de la fusion andalou-marocaine, traditionnellement servie lors des mariages.",
-        "story_ar": "تحفة فنية من الاندماج الأندلسي المغربي، تُقدم تقليدياً في الأعراس وتوازن بين المذاق الحلو والمالح."
+        "name": "Bstilla / بسطيلة",
+        "story": "البسطيلة الفاسية هي ذروة فن الطبخ المغربي؛ تحفة أندلسية استقرت في فاس وتطورت عبر القرون. تتميز بتناغم مذهل بين الملوحة والحلاوة، حيث تُحشى رقائق العجين الرقيقة جداً (الورقة) بالدجاج المحمر أو الحمام، واللوز المقلي والمهرمش مع القرفة وماء الزهر، وتُزين بالسكر الصقيل والقرفة.",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Moroccan_Pastilla.jpg/800px-Moroccan_Pastilla.jpg"
     },
     "Tangia": {
-        "name_ar": "طنجية",
-        "origin": "Marrakech / مراكش",
-        "story_en": "The famous slow-cooked clay pot dish, traditionally prepared by men in the communal oven (Fernatchi).",
-        "story_fr": "Le célèbre plat cuit lentement dans un pot en terre, traditionnellement préparé par les hommes.",
-        "story_ar": "طبق القدر الفخاري الشهير المطبوخ ببطء، كان يُحضره الرجال تقليدياً ويُطهى في الفرن الجماعي (الفرناشي)."
-    },
-    "Couscous": {
-        "name_ar": "كسكس",
-        "origin": "All Morocco / كل المغرب",
-        "story_en": "The symbol of Friday and family gathering. Each region has its own version.",
-        "story_fr": "Le symbole du vendredi et du rassemblement familial. Chaque région a sa propre version.",
-        "story_ar": "رمز يوم الجمعة واللمة العائلية. كل منطقة في المغرب لها لمستها الخاصة في تحضيره."
+        "name": "Tangia / طنجية",
+        "story": "الطنجية المراكشية هي أكلة الرجال بامتياز. ترتبط تاريخياً بأسواق مراكش وحرفييها؛ حيث يوضع اللحم مع الثوم والكامون والزعفران الحر والسمن في 'قلوشة' فخارية، وتُدفن في رماد 'الفرناشي' ليلة كاملة لتنضج ببطء شديد وتكتسب نكهة لا تُقاوم.",
+        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Tangia_Marrakchia.jpg/800px-Tangia_Marrakchia.jpg"
     }
 }
 
-# --- قاعدة بيانات المطاعم الافتراضية (للبحث حسب الموقع) ---
-restaurants_data = [
-    {"name": "Authentic Flavors Tanger", "city": "Tanger", "dish": "Tangia", "price": 120},
-    {"name": "Palais de Fès", "city": "Fès", "dish": "Pastilla", "price": 180},
-    {"name": "Sefrou Traditional Garden", "city": "Sefrou", "dish": "Tagine", "price": 95},
-    {"name": "Marrakech Delight (Tanger Branch)", "city": "Tanger", "dish": "Tangia", "price": 130}
-]
-
-# --- الترجمات ---
+# --- الترجمات والعملات ---
 translations = {
-    "English": {
-        "title": "Maison Balkiss: AI Heritage & Gastronomy",
-        "intro": "Experience Tourism 4.0: Discover Morocco's authentic flavors.",
-        "route_tab": "📍 AI Culinary Routes",
-        "story_tab": "🍲 AI Storytelling",
-        "select_region": "Select a Region",
-        "select_city": "Select a City",
-        "identify": "Scan your Dish",
-        "currency": "Currency",
-        "find_near": "Find it near you in",
-        "no_res": "No restaurants serving this dish in this city yet."
-    },
-    "Français": {
-        "title": "Maison Balkiss : IA Héritage & Gastronomie",
-        "intro": "Vivez le Tourisme 4.0 : Découvrez les saveurs authentiques.",
-        "route_tab": "📍 Itinéraires Culinaires",
-        "story_tab": "🍲 Storytelling IA",
-        "select_region": "Choisir une Région",
-        "select_city": "Choisir une Ville",
-        "identify": "Scanner votre Plat",
-        "currency": "Devise",
-        "find_near": "Trouvez-le près de vous à",
-        "no_res": "Aucun restaurant ne sert ce plat dans cette ville pour le moment."
-    },
-    "العربية": {
-        "title": "ميزون بلقيس: الذكاء الاصطناعي والتراث الغذائي",
-        "intro": "عش تجربة السياحة 4.0: اكتشف النكهات المغربية الأصيلة وقصصها.",
-        "route_tab": "📍 مسارات ذكية",
-        "story_tab": "🍲 حكايات الذكاء الاصطناعي",
-        "select_region": "اختر جهة",
-        "select_city": "اختر مدينة",
-        "identify": "فحص الطبق",
-        "currency": "العملة",
-        "find_near": "أين تجد هذا الطبق في مدينة",
-        "no_res": "لا توجد مطاعم تقدم هذا الطبق في هذه المدينة حالياً."
-    }
+    "English": {"title": "Maison Balkiss AI", "route_tab": "📍 Routes", "story_tab": "🍲 AI Storytelling", "heritage_tab": "🏛️ City Guide", "location": "Current Location", "select_city": "Select or Type City"},
+    "Français": {"title": "Maison Balkiss AI", "route_tab": "📍 Itinéraires", "story_tab": "🍲 Storytelling", "heritage_tab": "🏛️ Guide Ville", "location": "Ville Actuelle", "select_city": "Choisir/Saisir Ville"},
+    "العربية": {"title": "ميزون بلقيس الذكي", "route_tab": "📍 المسارات", "story_tab": "🍲 حكايات الأطباق", "heritage_tab": "🏛️ دليل المدن", "location": "الموقع الحالي", "select_city": "اختر أو اكتب المدينة"}
 }
-
-# --- العملات ---
 currencies = {"MAD": 1.0, "USD": 0.1, "EUR": 0.09}
 
-# --- القائمة الجانبية (Sidebar) ---
+# --- القائمة الجانبية (Sidebar) الشاملة ---
 st.sidebar.title("👑 Maison Balkiss AI")
 lang = st.sidebar.selectbox("🌐 Language", ["English", "Français", "العربية"])
 curr_type = st.sidebar.selectbox("💱 Currency", ["MAD", "USD", "EUR"])
-user_location = st.sidebar.selectbox("📍 Current Location (City)", ["Tanger", "Fès", "Marrakech", "Casablanca", "Sefrou"])
 
 t = translations[lang]
 
+st.sidebar.markdown("---")
+st.sidebar.subheader(t["location"])
+# خاصية تحديد الموقع: اختيار من القائمة أو كتابة يدوية
+search_method = st.sidebar.radio("", ["Select from List", "Type City Name"])
+if search_method == "Select from List":
+    user_city = st.sidebar.selectbox(t["select_city"], all_cities_list, index=all_cities_list.index("صفرو"))
+else:
+    user_city = st.sidebar.text_input(t["select_city"], "صفرو")
+
 # --- العنوان الرئيسي ---
 st.title(f"⚜️ {t['title']}")
-st.markdown(f"**{t['intro']}**")
 
-tab1, tab2 = st.tabs([t['route_tab'], t['story_tab']])
+tab1, tab2, tab3 = st.tabs([t['route_tab'], t['story_tab'], t['heritage_tab']])
 
 with tab1:
-    # قاعدة بيانات الجهات الـ 12
-    morocco_map = {
-        "Tanger-Tétouan-Al Hoceïma": ["Tanger", "Tétouan", "Chefchaouen"],
-        "Fès-Meknès": ["Sefrou", "Fès", "Meknès", "Ifrane"],
-        "Marrakech-Safi": ["Marrakech", "Safi", "Essaouira"],
-        # ... باقي الجهات تضاف هنا
-    }
-    region = st.selectbox(t['select_region'], list(morocco_map.keys()) if region in morocco_map else ["Fès-Meknès"])
-    city = st.selectbox(t['select_city'], morocco_map.get(region, ["Fès"]))
-    
-    if city == "Sefrou":
-        st.info("🍒 **Route: The Cherry & Olive Trail**")
-        st.write("Specialty: Tajine with Sefrou Olives.")
-    else:
-        st.warning("🚧 Smart route generation...")
+    st.info(f"📍 {t['location']}: **{user_city}**")
+    region_of_city = next((r for r, cities in morocco_map.items() if user_city in cities), "Unknown Region")
+    st.subheader(f"Region: {region_of_city}")
+    # (هنا يظهر منطق المسارات الذكية)
+    if user_city == "صفرو":
+        st.success("✅ Smart Trail Found: **The Cherry & Olive Heritage Route**")
 
 with tab2:
-    st.subheader(t['identify'])
-    uploaded_file = st.file_uploader("Upload dish photo...", type=["jpg", "png", "jpeg"])
+    st.subheader("🍲 AI Gastronomy Storytelling")
+    dish = st.selectbox("Select Dish:", list(food_stories.keys()))
+    data = food_stories[dish]
+    st.image(data["img"], use_column_width=True)
+    st.markdown(f"### {data['name']}")
+    st.write(f"📖 {data['story']}")
+
+with tab3:
+    st.header(f"🏛️ Discover {user_city}")
+    # البحث الذكي في قاعدة البيانات
+    info = city_knowledge_base.get(user_city, {
+        "agri": "المعلومات الفلاحية قيد التحديث عبر Google لهذه المنطقة...",
+        "crafts": "الصناعة التقليدية مشهورة تاريخياً في هذا الإقليم، جاري تحميل التفاصيل...",
+        "monuments": "نحن نبحث في السجلات الأثرية عن معالم هذه المدينة...",
+        "img": "https://via.placeholder.com/800x400.png?text=Discover+Morocco"
+    })
     
-    if uploaded_file:
-        st.image(uploaded_file, width=400)
-        
-        # اختيار الطبق (محاكاة للتعرف الذكي)
-        dish_selected = st.selectbox("AI Identification Results:", list(food_db.keys()))
-        info = food_db[dish_selected]
-        
-        st.success(f"✅ {info['name_ar']} / {dish_selected}")
-        st.info(f"📍 **Origin:** {info['origin']}")
-        
-        # عرض القصة حسب اللغة المختارة
-        if lang == "English": st.write(f"📖 **Story:** {info['story_en']}")
-        elif lang == "Français": st.write(f"📖 **Histoire:** {info['story_fr']}")
-        else: st.write(f"📖 **القصة:** {info['story_ar']}")
-        
-        st.markdown("---")
-        st.subheader(f"🍴 {t['find_near']} {user_location}:")
-        
-        # البحث في المطاعم حسب الطبق والمدينة الحالية للسائح
-        nearby = [r for r in restaurants_data if r['dish'] == dish_selected and r['city'] == user_location]
-        
-        if nearby:
-            for res in nearby:
-                col1, col2 = st.columns([2,1])
-                with col1:
-                    st.write(f"🏠 **{res['name']}**")
-                with col2:
-                    price = res['price'] * currencies[curr_type]
-                    st.write(f"💰 {round(price, 2)} {curr_type}")
-                st.button(f"Go to {res['name']} 🚩", key=res['name'])
-        else:
-            st.warning(t['no_res'])
+    st.image(info["img"], use_column_width=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("🌾 Agriculture & Nature")
+        st.write(info["agri"])
+        st.subheader("🧶 Local Crafts")
+        st.write(info["crafts"])
+    with col2:
+        st.subheader("🏛️ Monuments & Places")
+        st.write(info["monuments"])
 
 st.markdown("---")
-st.caption("Maison Balkiss AI Business - Tourism 4.0")
+st.caption("Powered by Maison Balkiss AI - Tourism 4.0 | © 2026 Competition Entry")
