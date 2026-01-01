@@ -101,52 +101,43 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # التأكد من المفتاح الصحيح
-        gemini_key = "AIzaSyBN9cmExKPo5Mn9UAtvdYKohgODPf8hwbA"
+        # المفتاح ديالك (Gemini API)
+        api_key = "AIzaSyBN9cmExKPo5Mn9UAtvdYKohgODPf8hwbA"
         
         import base64
         import requests
         
         # تحويل الصورة
         img_b64 = base64.b64encode(up.getvalue()).decode("utf-8")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": "Strictly identify this Moroccan dish. Give Name, Region, and 2 lines of its story. Answer in English."},
+                    {"text": "Strictly identify this Moroccan dish. Give Name, Region, and 2 lines of its history. Answer in English."},
                     {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
                 ]
             }]
         }
 
         with st.spinner('Maison Balkiss AI is identifying... 🧠'):
-            try:
-                # زدنا الوقت (timeout) لـ 20 ثانية باش نعطيوه فرصة يجاوب
-                response = requests.post(url, json=payload, timeout=20)
-                res_json = response.json()
-                
-                if 'candidates' in res_json:
-                    ai_info = res_json['candidates'][0]['content']['parts'][0]['text']
-                    st.success("✅ AI Vision Recognition Complete")
-                    st.write(ai_info)
-                else:
-                    # الخطة البديلة إيلا الجواب ما جاش مزيان
-                    st.info("🔄 Using Smart Recognition...")
-                    raw_name = up.name.lower()
-                    if any(x in raw_name for x in ["couscous", "1", "كسكس"]):
-                        st.write("**Identified:** Moroccan Couscous")
-                    elif any(x in raw_name for x in ["kaab", "gazal", "image"]):
-                        st.write("**Identified:** Kaab el Ghazal")
-                    else:
-                        st.write(f"**Identified:** {up.name.split('.')[0].title()}")
-
-            except Exception:
-                st.warning("⚠️ Connection issue. Using local labeling.")
-                st.write(f"**Identified:** {up.name.split('.')[0].title()}")
+            # محاولة الربط الحقيقي بـ Gemini
+            response = requests.post(url, json=payload, timeout=25)
+            res_json = response.json()
+            
+            # إيلا جوجل جاوب مزيان
+            if 'candidates' in res_json:
+                ai_info = res_json['candidates'][0]['content']['parts'][0]['text']
+                st.success("✨ AI Vision: Identity Confirmed")
+                st.write(ai_info)
+            else:
+                # إيلا كاين خطأ فالمفتاح غايبان هنا دبا
+                st.error("⚠️ AI Vision Error: Please check your API restrictions in Google AI Studio.")
+                if 'error' in res_json:
+                    st.write(f"Debug Info: {res_json['error']['message']}")
 
         st.markdown("---")
-        # ربط الخريطة كيبقى خدام ديما
+        # ربط الخريطة
         st.subheader(f"🍴 {t['find_near']} {user_city}:")
         st.markdown(f"🔗 [Find on Google Maps](http://googleusercontent.com/maps.google.com/q=authentic+food+in+{user_city})")
 with tab3:
