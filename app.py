@@ -97,42 +97,62 @@ with tab1:
 with tab2:
     st.subheader(t['identify'])
     up = st.file_uploader("Upload dish photo...", type=["jpg", "png", "jpeg"])
+    
     if up:
         st.image(up, width=400)
         
-        # --- محرك التعرف المنطقي (Logical Recognition Engine) ---
-        # هاد الجزء كيعالج المشكل اللي بان فالتصويرة ديالك باش ما يبقاش يخلط
-        raw_name = up.name.lower()
+        # تحويل الصورة لـ Base64 باش جوجل يقراها
+        import base64
+        import requests
+        content = base64.b64encode(up.getvalue()).decode('UTF-8')
         
-        if any(x in raw_name for x in ["couscous", "كسكس"]):
-            dish_name = "Moroccan Couscous"
-            known_region = "Across Morocco (Friday Tradition)"
-            dish_story = "The most iconic Moroccan dish, traditionally served on Fridays. It consists of steamed semolina pearls topped with seven vegetables and tender meat."
-        elif any(x in raw_name for x in ["kaab", "gazal", "ghazal"]):
-            dish_name = "Kaab el Ghazal (Cornes de Gazelle)"
-            known_region = "Fès & Meknès (Imperial Cities)"
-            dish_story = "A delicate almond-filled pastry scented with orange blossom, shaped like a crescent moon."
-        elif "tajine" in raw_name:
-            dish_name = "Moroccan Tajine"
-            known_region = "Atlas Mountains & Souss"
-            dish_story = "A slow-cooked savory stew named after the conical clay pot it is cooked in."
-        else:
-            # إذا كان اسم الملف غير معروف، يطلب من السائح تسميته بوضوح
-            dish_name = up.name.split('.')[0].replace('_', ' ').title()
-            known_region = user_city
-            dish_story = "An authentic treasure of the Moroccan culinary heritage."
+        # المفتاح الخاص بكِ للربط بـ Google Vision
+        api_key = "AIzaSyDKYXqz835bjd8CMjWHU9d24_fs13_o8pc"
+        url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
+        
+        data = {
+            "requests": [{
+                "image": {"content": content},
+                "features": [{"type": "LABEL_DETECTION", "maxResults": 10}]
+            }]
+        }
+        
+        with st.spinner('Maison Balkiss AI is analyzing... 🧠'):
+            try:
+                response = requests.post(url, json=data)
+                labels = [l['description'].lower() for l in response.json()['responses'][0]['labelAnnotations']]
+                
+                # --- المنطق الذكي للتعرف على الماكلة المغربية ---
+                if any(x in labels for x in ["couscous", "semolina", "grain"]):
+                    dish_name = "Moroccan Couscous"
+                    dish_region = "All Regions (Friday Ritual)"
+                    dish_story = "The masterpiece of Moroccan hospitality, traditionally served with seven vegetables."
+                elif any(x in labels for x in ["pastry", "cookie", "almond", "crescent"]):
+                    dish_name = "Kaab el Ghazal (Cornes de Gazelle)"
+                    dish_region = "Fès & Meknès"
+                    dish_story = "A royal almond pastry scented with orange blossom, shaped like a crescent."
+                elif any(x in labels for x in ["tajine", "stew", "pottery"]):
+                    dish_name = "Moroccan Tajine"
+                    dish_region = "Atlas & Souss"
+                    dish_story = "A slow-cooked savory stew named after the clay pot, representing Moroccan patience."
+                else:
+                    dish_name = labels[0].title() if labels else "Traditional Dish"
+                    dish_region = user_city
+                    dish_story = "An authentic piece of Morocco's culinary heritage."
 
-        # عرض النتائج المصححة
-        st.success(f"✅ AI Identified: {dish_name}")
-        st.markdown(f"### 📖 {t['story_tab']}: {dish_name}")
-        st.info(f"📍 **Famous Region:** {known_region}")
-        st.write(f"**Description:** {dish_story}")
-        
-        st.markdown("---")
-        # ربط البحث بـ Google Maps حسب الطبق الصحيح والمدينة
-        st.subheader(f"🍴 {t['find_near']} {user_city}:")
-        maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
-        st.markdown(f"🔗 [Find authentic {dish_name} in {user_city} on Maps]({maps_link})")
+                st.success(f"✅ AI Identified: {dish_name}")
+                st.markdown(f"### 📖 {t['story_tab']}: {dish_name}")
+                st.info(f"📍 **Origin:** {dish_region}")
+                st.write(dish_story)
+                
+                st.markdown("---")
+                # ربط حي بـ Google Maps فـ المدينة المختارة
+                st.subheader(f"🍴 {t['find_near']} {user_city}:")
+                maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
+                st.markdown(f"🔗 [Find best places for {dish_name} in {user_city}]({maps_link})")
+                
+            except Exception:
+                st.error("Error connecting to Vision AI. Please ensure the API is ENABLED in Google Console.")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
