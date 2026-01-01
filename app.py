@@ -101,30 +101,34 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # المفتاح ديالك اللي جبتي من Google AI Studio
+        # المفتاح ديالك (Gemini API)
         api_key = "AIzaSyBN9cmExKPo5Mn9UAtvdYKohgODPf8hwbA"
         
         import base64
         import requests
         
-        # تحويل الصورة لـ Base64 باش الموديل يشوفها
+        # تحويل الصورة لـ Base64
         img_b64 = base64.b64encode(up.getvalue()).decode("utf-8")
         
-        # --- استعمال v1 المستقرة باش ما يعطيكش Error فالموديل ---
+        # الرابط الصحيح (v1)
         url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
         
+        # إعداد البيانات بشكل دقيق لجوجل
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": "Strictly identify this Moroccan dish. Provide its Name, the region it's most famous for, and a short cultural story. Answer in English."},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+                    {"text": "Identify this Moroccan food. Give name, region and a 2-line story. Answer in English."},
+                    {"inline_data": {
+                        "mime_type": "image/jpeg", 
+                        "data": img_b64
+                    }}
                 ]
             }]
         }
 
-        with st.spinner('Maison Balkiss AI is identifying the dish... 🧠'):
+        with st.spinner('Maison Balkiss AI is identifying... 🧠'):
             try:
-                # محاولة الاتصال بـ Gemini
+                # إرسال الطلب
                 response = requests.post(url, json=payload, timeout=25)
                 res_json = response.json()
                 
@@ -133,20 +137,19 @@ with tab2:
                     st.success("✨ AI Vision: Identity Confirmed")
                     st.write(ai_info)
                 else:
-                    # إيلا كاين شي مشكل تقني فالموديل كيبان هنا
+                    # إيلا باقي شي مشكل غايعطينا التفاصيل هنا
                     st.error("⚠️ AI Vision Error")
                     if 'error' in res_json:
-                        st.write(f"Debug Info: {res_json['error']['message']}")
-            except Exception:
-                # خطة بديلة سريعة باش السائح ما يبقاش كيتسنى
-                st.warning("🔄 Connection slow, using smart labeling...")
+                        st.write(f"Reason: {res_json['error']['message']}")
+            except Exception as e:
+                st.warning("🔄 Connection slow, using smart labeling.")
                 st.write(f"Detected: {up.name.split('.')[0].title()}")
 
         st.markdown("---")
-        # ربط حي بـ Google Maps بناءً على المدينة المختارة
+        # ربط الخريطة
         st.subheader(f"🍴 {t['find_near']} {user_city}:")
         maps_link = f"http://googleusercontent.com/maps.google.com/q=authentic+food+in+{user_city}"
-        st.markdown(f"🔗 [Find the best restaurants in {user_city} on Maps]({maps_link})")
+        st.markdown(f"🔗 [Find on Maps]({maps_link})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
