@@ -104,12 +104,50 @@ with tab1:
 with tab2:
     st.subheader(t['identify'])
     up = st.file_uploader("Upload dish photo...", type=["jpg", "png"])
+    
     if up:
-        st.image(up, width=300)
-        # هنا يمكن إضافة "القصص الطويلة" يدوياً
-        st.success("✅ AI Detected: Moroccan Gastronomy Heritage")
-        st.write(f"📖 **Story:** Add your manual story here for {user_city}.")
+        st.image(up, width=350)
+        
+        # محرك البحث الذكي (يدوي حالياً لضمان الدقة)
+        # تقدري تكتبي هنا أي طبق بغيتي وتزيدي القصص ديالو
+        dish_database = {
+            "Pastilla": {
+                "name": "Bstilla / بسطيلة",
+                "story": "تعتبر البسطيلة الفاسية ملكة المائدة المغربية؛ تحفة أندلسية استقرت في فاس وتطورت عبر القرون.",
+                "ingredients": "ورقة البسطيلة، دجاج أو حمام، لوز مقلي ومهرمش، بيض، قرفة، سكر صقيل، وماء الزهر.",
+                "cities": "فاس (الأصل)، الرباط، تطوان.",
+                "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Moroccan_Pastilla.jpg/800px-Moroccan_Pastilla.jpg"
+            },
+            "Tangia": {
+                "name": "Tangia / طنجية",
+                "story": "أكلة الحرفيين المراكشيين بامتياز، تُطهى ببطء في رماد الفرن التقليدي 'الفرناشي' ليلة كاملة.",
+                "ingredients": "لحم البقر أو الغنم، سمن حار، مصير، ثوم، زعفران حر، كمون، وزيت زيتون.",
+                "cities": "مراكش (الأصل).",
+                "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Tangia_Marrakchia.jpg/800px-Tangia_Marrakchia.jpg"
+            }
+        }
+        
+        # اختيار الطبق (محاكاة للتعرف الذكي)
+        selected_dish = st.selectbox("AI Identification Results:", list(dish_database.keys()))
+        dish_info = dish_database[selected_dish]
+        
+        # عرض المعلومات المرتبطة ذكياً
+        st.image(dish_info["img"], use_column_width=True)
+        st.success(f"✅ {dish_info['name']}")
+        
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown(f"📖 **Story / الحكاية:** \n {dish_info['story']}")
+            st.markdown(f"📍 **Famous Cities:** {dish_info['cities']}")
+        with col_b:
+            st.markdown(f"🍳 **Ingredients / المكونات:** \n {dish_info['ingredients']}")
 
+        st.markdown("---")
+        # الربط مع المدينة اللي حدد السائح في القائمة الجانبية
+        st.subheader(f"🍴 {t['find_near']} {user_city}:")
+        st.write(f"Based on AI, here are the top places for {dish_info['name']} in {user_city}:")
+        st.info(f"📍 **Restaurant Al-Fassia** - 10 min from your location in {user_city}")
+        st.info(f"📍 **Traditional Kitchen** - Highly recommended for authentic {selected_dish}")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # هنا تعدلين يدوياً معلومات كل مدينة
