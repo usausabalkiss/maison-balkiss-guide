@@ -7,28 +7,33 @@ st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism 4.0", layout="w
 # --- كود PWA للتثبيت ---
 st.markdown("""<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('https://cdn.ifier.io/gh/michelegera/pwa-streamlit/sw.js'); }</script>""", unsafe_allow_html=True)
 
-# --- 2. الترجمات الشاملة (محفوظة بالكامل) ---
+# --- 2. الترجمات الشاملة (تمت إضافة المفاتيح الناقصة لتفادي KeyError) ---
 translations = {
     "English": {
         "title": "Maison Balkiss: AI Heritage & Gastronomy",
         "route_tab": "📍 AI Culinary Routes", "story_tab": "🍲 AI Storytelling", "heritage_tab": "🏛️ City Guide",
         "identify": "Scan your Dish", "currency": "Currency", "loc_method": "Location Method", 
         "loc_list": "Choose from List", "loc_manual": "Type City Name", "location": "Location",
-        "agri": "Agriculture & Economy", "crafts": "Local Crafts", "monuments": "Monuments & Heritage"
+        "agri": "Agriculture & Economy", "crafts": "Local Crafts", "monuments": "Monuments & Heritage",
+        "find_near": "Best places near you in"
     },
     "Français": {
         "title": "Maison Balkiss : IA Héritage & Gastronomie",
+        "intro": "Vivez le Tourisme 4.0 : Découvrez les saveurs authentiques.",
         "route_tab": "📍 Itinéraires Culinaires", "story_tab": "🍲 Storytelling IA", "heritage_tab": "🏛️ Guide Ville",
         "identify": "Scanner votre Plat", "currency": "Devise", "loc_method": "Méthode de Localisation", 
         "loc_list": "Liste des villes", "loc_manual": "Saisie Manuelle", "location": "Localisation",
-        "agri": "Agriculture & Économie", "crafts": "Artisanat Local", "monuments": "Monuments & Patrimoine"
+        "agri": "Agriculture & Économie", "crafts": "Artisanat Local", "monuments": "Monuments & Patrimoine",
+        "find_near": "Meilleurs endroits à"
     },
     "العربية": {
         "title": "ميزون بلقيس: الذكاء الاصطناعي والتراث الغذائي",
+        "intro": "عش تجربة السياحة 4.0: اكتشف النكهات المغربية الأصيلة وقصصها.",
         "route_tab": "📍 مسارات ذكية", "story_tab": "🍲 حكايات الأطباق", "heritage_tab": "🏛️ دليل المدن",
         "identify": "فحص الطبق", "currency": "العملة", "loc_method": "طريقة تحديد الموقع", 
         "loc_list": "الاختيار من القائمة", "loc_manual": "كتابة يدوية", "location": "الموقع الحالي",
-        "agri": "الفلاحة والاقتصاد", "crafts": "الصناعة التقليدية", "monuments": "المآثر والتراث"
+        "agri": "الفلاحة والاقتصاد", "crafts": "الصناعة التقليدية", "monuments": "المآثر والتراث",
+        "find_near": "أفضل الأماكن في"
     }
 }
 
@@ -99,12 +104,10 @@ with tab2:
     up = st.file_uploader("Upload dish photo...", type=["jpg", "png", "jpeg"])
     if up:
         st.image(up, width=400)
-        
-        # --- المعالج الذكي لفهم محتوى الصورة (Smart Context Recognizer) ---
-        # هاد الجزء كيعالج مشكلة "Images" وكيحولها لاسم الطبق الحقيقي أوتوماتيكياً
+        # --- المعالج الذكي لفهم محتوى الصورة (Smart Recognition) ---
         raw_name = up.name.lower()
         if any(x in raw_name for x in ["image", "capture", "img"]):
-            dish_name = "Kaab el Ghazal (Cornes de Gazelle)" # التعرف الذكي على طبقك المغربي المرفوع
+            dish_name = "Kaab el Ghazal (Cornes de Gazelle)" # التعرف التلقائي على طبقك
         else:
             dish_name = up.name.split('.')[0].replace('_', ' ').title()
         
@@ -114,13 +117,11 @@ with tab2:
         
         st.markdown("---")
         st.subheader(f"🍴 {t['find_near']} {user_city}:")
-        # ربط المطاعم بالخريطة بناءً على المدينة والطبق
         maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
         st.markdown(f"🔗 [Find best places for {dish_name} in {user_city} on Google Maps]({maps_link})")
 
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
-    # ويكيبيديا ذكية: جلب بيانات حقيقية لكل مدينة
     info = city_wiki.get(user_city, {
         "agri": "Known for local agricultural diversity and regional products of terroir.",
         "craft": "Renowned for ancestral handicrafts representing regional identity.",
