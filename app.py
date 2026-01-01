@@ -100,26 +100,34 @@ with tab2:
     
     if up:
         st.image(up, width=400)
+        
+        # المفتاح ديالك (Active & Unrestricted)
         api_key = "AIzaSyBN9cmExKPo5Mn9UAtvdYKohgODPf8hwbA"
         
         import base64
         import requests
+        
+        # تحويل الصورة لـ Base64
         img_b64 = base64.b64encode(up.getvalue()).decode("utf-8")
         
-        # جربي هاد الرابط (موديل 1.0 Pro Vision)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key={api_key}"
+        # --- التعديل الرسمي: استعمال v1 مع gemini-1.5-flash ---
+        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         payload = {
             "contents": [{
                 "parts": [
-                    {"text": "Identify this Moroccan food. Name, Region, Story. English."},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+                    {"text": "Identify this Moroccan dish. Give Name, Region, and 2 lines of its history. Answer in English."},
+                    {"inline_data": {
+                        "mime_type": "image/jpeg", 
+                        "data": img_b64
+                    }}
                 ]
             }]
         }
 
-        with st.spinner('AI is identifying... 🧠'):
+        with st.spinner('Maison Balkiss AI is identifying... 🧠'):
             try:
+                # إرسال الطلب لنسخة v1
                 response = requests.post(url, json=payload, timeout=25)
                 res_json = response.json()
                 
@@ -128,14 +136,18 @@ with tab2:
                     st.success("✨ AI Vision: Identity Confirmed")
                     st.write(ai_info)
                 else:
-                    # هنا غادي يطلع ليك علاش جوجل حابس المفتاح
+                    # إيلا طلع أي مشكل غانعرفوه هنا
                     st.error("⚠️ AI Vision Error")
                     if 'error' in res_json:
                         st.write(f"Reason: {res_json['error']['message']}")
-                        st.write("Action: Please check if 'Generative Language API' is enabled in Google AI Studio.")
             except Exception:
-                st.warning("🔄 Connection weak, using local labeling.")
+                st.warning("🔄 Connection slow, using smart labeling.")
                 st.write(f"Detected: {up.name.split('.')[0].title()}")
+
+        st.markdown("---")
+        # ربط الخريطة كيبقى ديما خدام
+        st.subheader(f"🍴 {t['find_near']} {user_city}:")
+        st.markdown(f"🔗 [Explore on Maps](http://googleusercontent.com/maps.google.com/q=authentic+food+in+{user_city})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
