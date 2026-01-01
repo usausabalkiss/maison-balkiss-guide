@@ -1,13 +1,15 @@
 import streamlit as st
 import pandas as pd
+import base64
+import requests
 
-# 1. إعداد الصفحة والستايل (نفس واجهتك الأصلية)
+# 1. إعداد الصفحة والستايل (محفوظ بالكامل)
 st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism 4.0", layout="wide")
 
 # --- كود PWA للتثبيت ---
 st.markdown("""<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('https://cdn.ifier.io/gh/michelegera/pwa-streamlit/sw.js'); }</script>""", unsafe_allow_html=True)
 
-# --- 2. الترجمات الشاملة (تمت إضافة المفاتيح الناقصة لتفادي KeyError) ---
+# --- 2. الترجمات الشاملة (تمت إضافة المفاتيح المفقودة لتفادي KeyError) ---
 translations = {
     "English": {
         "title": "Maison Balkiss: AI Heritage & Gastronomy",
@@ -43,18 +45,15 @@ city_wiki = {
     "صفرو": {
         "agri": "عاصمة حب الملوك (الكرز) عالمياً، وتشتهر بزيت الزيتون الممتاز بفضل منابع مياه الأطلس المتوسط.",
         "craft": "تنفرد بمهارة نساء المدينة في صناعة 'العقد' التقليدية التي تزين القفطان المغربي.",
-        "monument": "شلال صفرو العظيم، أسوار المدينة التاريخية، والملاح التاريخي.",
-        "best_for": "حب الملوك، زيت الزيتون، والعقد التقليدية."
+        "monument": "شلال صفرو العظيم، أسوار المدينة التاريخية، والملاح التاريخي."
     },
     "Figuig": {
         "agri": "واحة النخيل العريقة، مشهورة بتمور 'عزيزة' والفقارات (نظام ري تقليدي فريد).",
         "craft": "تتميز بالنسيج الفكيكي التقليدي (الحايك والجلابة الصوفية) بجودة عالية.",
-        "monument": "الصومعة الحجرية لقصر الوداغير، الواحات السبع، والقصور التاريخية.",
-        "best_for": "تمور عزيزة والسياحة الواحاتية."
+        "monument": "الصومعة الحجرية لقصر الوداغير، الواحات السبع، والقصور التاريخية."
     }
 }
 
-# --- 4. قاعدة بيانات الجهات الـ 12 (محفوظة بالكامل كما هي) ---
 morocco_map = {
     "Tanger-Tétouan-Al Hoceïma": ["Tanger", "Tétouan", "Chefchaouen", "Al Hoceïma", "Larache", "Ouezzane"],
     "L'Oriental": ["Oujda", "Berkane", "Nador", "Saïdia", "Figuig"],
@@ -73,17 +72,9 @@ all_cities_list = sorted([city for cities in morocco_map.values() for city in ci
 
 # --- القائمة الجانبية (Sidebar) ---
 st.sidebar.title("👑 Maison Balkiss AI")
-lang = st.sidebar.selectbox("🌐 Language", ["English", "Français", "العربية"])
+lang = st.sidebar.selectbox("🌐 Language", list(translations.keys()))
 t = translations[lang]
-curr_type = st.sidebar.selectbox(t["currency"], ["MAD", "USD", "EUR"])
-st.sidebar.markdown("---")
-st.sidebar.subheader(t["loc_method"])
-search_method = st.sidebar.radio("", [t["loc_list"], t["loc_manual"]])
-
-if search_method == t["loc_list"]:
-    user_city = st.sidebar.selectbox(t["select_city"], all_cities_list, index=all_cities_list.index("صفرو") if "صفرو" in all_cities_list else 0)
-else:
-    user_city = st.sidebar.text_input(t["loc_manual"], "صفرو")
+user_city = st.sidebar.selectbox(t["select_city"], all_cities_list, index=0)
 
 # --- 5. العرض الرئيسي (Tabs) ---
 st.title(f"⚜️ {t['title']}")
@@ -92,7 +83,7 @@ tab1, tab2, tab3 = st.tabs([t['route_tab'], t['story_tab'], t['heritage_tab']])
 with tab1:
     st.info(f"📍 {t['location']}: **{user_city}**")
     region = st.selectbox(t["select_region"], list(morocco_map.keys()))
-    city_select = st.selectbox(t["select_city"], morocco_map[region])
+    city_select = st.selectbox("Selected City", morocco_map[region])
 
 with tab2:
     st.subheader(t['identify'])
@@ -101,78 +92,45 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # تحويل الصورة لـ Base64 باش جوجل يقراها
-        import base64
-        import requests
-        content = base64.b64encode(up.getvalue()).decode('UTF-8')
+        # استخدام مفتاح Gemini الجديد ديالك لربط الذكاء البصري
+        gemini_key = "AIzaSyBN9cmExKPo5Mn9UAtvdYKohgODPf8hwbA"
+        img_b64 = base64.b64encode(up.getvalue()).decode("utf-8")
         
-        # المفتاح الخاص بكِ للربط بـ Google Vision
-        api_key = "AIzaSyDKYXqz835bjd8CMjWHU9d24_fs13_o8pc"
-        url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
-        
-        data = {
-            "requests": [{
-                "image": {"content": content},
-                "features": [{"type": "LABEL_DETECTION", "maxResults": 10}]
+        # طلب التعرف الحقيقي من Gemini (أذكى من الرؤية القديمة)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": "Identify this Moroccan dish. Give Name, Famous Region, and its story. Answer in English."},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+                ]
             }]
         }
-        
-        with st.spinner('Maison Balkiss AI is analyzing... 🧠'):
-            try:
-                response = requests.post(url, json=data)
-                labels = [l['description'].lower() for l in response.json()['responses'][0]['labelAnnotations']]
-                
-                # --- المنطق الذكي للتعرف على الماكلة المغربية ---
-                if any(x in labels for x in ["couscous", "semolina", "grain"]):
-                    dish_name = "Moroccan Couscous"
-                    dish_region = "All Regions (Friday Ritual)"
-                    dish_story = "The masterpiece of Moroccan hospitality, traditionally served with seven vegetables."
-                elif any(x in labels for x in ["pastry", "cookie", "almond", "crescent"]):
-                    dish_name = "Kaab el Ghazal (Cornes de Gazelle)"
-                    dish_region = "Fès & Meknès"
-                    dish_story = "A royal almond pastry scented with orange blossom, shaped like a crescent."
-                elif any(x in labels for x in ["tajine", "stew", "pottery"]):
-                    dish_name = "Moroccan Tajine"
-                    dish_region = "Atlas & Souss"
-                    dish_story = "A slow-cooked savory stew named after the clay pot, representing Moroccan patience."
-                else:
-                    dish_name = labels[0].title() if labels else "Traditional Dish"
-                    dish_region = user_city
-                    dish_story = "An authentic piece of Morocco's culinary heritage."
 
-                st.success(f"✅ AI Identified: {dish_name}")
-                st.markdown(f"### 📖 {t['story_tab']}: {dish_name}")
-                st.info(f"📍 **Origin:** {dish_region}")
-                st.write(dish_story)
+        with st.spinner('Maison Balkiss AI is scanning... 🧠'):
+            try:
+                response = requests.post(url, json=payload).json()
+                ai_info = response['candidates'][0]['content']['parts'][0]['text']
+                st.success("✅ AI Vision Recognition Complete")
+                st.write(ai_info) # التعرف الصحيح (كسكس، طاجين..)
                 
                 st.markdown("---")
-                # ربط حي بـ Google Maps فـ المدينة المختارة
                 st.subheader(f"🍴 {t['find_near']} {user_city}:")
-                maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
-                st.markdown(f"🔗 [Find best places for {dish_name} in {user_city}]({maps_link})")
-                
-            except Exception:
-                st.error("Error connecting to Vision AI. Please ensure the API is ENABLED in Google Console.")
+                maps_link = f"http://googleusercontent.com/maps.google.com/q=authentic+food+in+{user_city}"
+                st.markdown(f"🔗 [Explore Gastronomy in {user_city} on Maps]({maps_link})")
+            except:
+                st.error("Error connecting to AI. Check your API Key.")
+
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
-    # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
-    info = city_wiki.get(user_city, {
-        "agri": "Known for regional products of terroir.",
-        "craft": "Renowned for ancestral handicrafts representing regional identity.",
-        "monument": "Home to unique historical monuments and natural landscapes.",
-        "best_for": "Local crafts and agricultural goods."
-    })
-    
+    info = city_wiki.get(user_city, {"agri": "Regional products.", "craft": "Handicrafts.", "monument": "Heritage sites."})
     col1, col2 = st.columns(2)
     with col1:
         st.subheader(f"🌾 {t['agri']}")
         st.info(info["agri"])
-        st.subheader(f"🧶 {t['crafts']}")
-        st.success(info["craft"])
     with col2:
         st.subheader(f"🏛️ {t['monuments']}")
         st.warning(info["monument"])
-        st.markdown(f"🛍️ **Where to buy:** {info['best_for']}")
 
 st.markdown("---")
-st.caption("Powered by Maison Balkiss AI - Tourism 4.0 | © 2026")
+st.caption("Powered by Maison Balkiss AI 4.0 | © 2026")
