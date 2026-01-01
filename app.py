@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 
 # 1. إعداد الصفحة والستايل
-st.set_page_config(page_title="Maison Balkiss AI - Smart Tourism 4.0", layout="wide")
+st.set_page_config(page_title="Maison Balkiss AI - Master Code", layout="wide")
 
 # --- كود PWA للتثبيت على الهاتف (محفوظ) ---
 st.markdown("""<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('https://cdn.jsdelivr.net/gh/michelegera/pwa-streamlit/sw.js'); }</script>""", unsafe_allow_html=True)
 
-# --- 2. الترجمات الشاملة (لغات ثلاث - محفوظة بالكامل) ---
+# --- 2. الترجمات الشاملة (لغات ثلاث) ---
 translations = {
     "English": {
         "title": "Maison Balkiss: AI Heritage & Gastronomy",
@@ -56,7 +56,7 @@ translations = {
     }
 }
 
-# --- 3. قاعدة بيانات الجهات الـ 12 (محفوظة بالكامل) ---
+# --- 3. قاعدة بيانات الجهات الـ 12 (كاملة ومحفوظة) ---
 morocco_map = {
     "Tanger-Tétouan-Al Hoceïma": ["Tanger", "Tétouan", "Chefchaouen", "Al Hoceïma", "Larache", "Ouezzane"],
     "L'Oriental": ["Oujda", "Berkane", "Nador", "Saïdia", "Figuig"],
@@ -73,7 +73,7 @@ morocco_map = {
 }
 all_cities_list = sorted([city for cities in morocco_map.values() for city in cities])
 
-# --- 4. القائمة الجانبية (Sidebar) - استرجاع كل الخصائص القديمة ---
+# --- 4. القائمة الجانبية (Sidebar) ---
 st.sidebar.title("👑 Maison Balkiss AI")
 lang = st.sidebar.selectbox("🌐 Language", ["English", "Français", "العربية"])
 t = translations[lang]
@@ -81,7 +81,7 @@ t = translations[lang]
 curr_type = st.sidebar.selectbox(t["currency"], ["MAD", "USD", "EUR"])
 st.sidebar.markdown("---")
 
-# خاصية تحديد الموقع (رجعات كيف كانت)
+# خاصية تحديد الموقع
 st.sidebar.subheader(t["loc_method"])
 search_method = st.sidebar.radio("", [t["loc_list"], t["loc_manual"]])
 
@@ -96,7 +96,6 @@ tab1, tab2, tab3 = st.tabs([t['route_tab'], t['story_tab'], t['heritage_tab']])
 
 with tab1:
     st.info(f"📍 {t['loc_method']}: **{user_city}**")
-    # قائمة الجهات الـ 12
     region = st.selectbox(t['select_region'], list(morocco_map.keys()))
     city = st.selectbox(t['select_city'], morocco_map[region])
     if city == "صفرو":
@@ -104,23 +103,20 @@ with tab1:
 
 with tab2:
     st.subheader(t['identify'])
-    # خانة تصوير الطبق (Scanner)
     up = st.file_uploader("Upload dish photo...", type=["jpg", "png"])
     if up:
         st.image(up, width=300)
-        # الحكايات الطويلة (مدمجة ذكياً)
+        # هنا يمكن إضافة "القصص الطويلة" يدوياً
         st.success("✅ AI Detected: Moroccan Gastronomy Heritage")
-        st.markdown(f"📖 **Historical Story:** This dish reflects centuries of Moroccan history and culture in **{user_city}**.")
-        st.markdown(f"--- \n ### 🍴 {t['find_near']} {user_city}:")
-        st.write(f"Finding best traditional restaurants in {user_city} for you...")
+        st.write(f"📖 **Story:** Add your manual story here for {user_city}.")
 
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
-    # البحث الذكي التلقائي لكل مدينة
+    # هنا تعدلين يدوياً معلومات كل مدينة
     st.subheader("🌾 Agriculture & Nature")
-    st.write(f"The region of {user_city} is strategically known for its traditional products like olives and seasonal fruits.")
+    st.write(f"Manual Info for {user_city}: Add agriculture details here.")
     st.subheader("🧶 Local Crafts & Monuments")
-    st.write(f"Explore the historical sites and unique craftsmanship that define the identity of {user_city}.")
+    st.write(f"Manual Info for {user_city}: Add crafts and monuments here.")
 
 st.markdown("---")
 st.caption("Powered by Maison Balkiss AI - Tourism 4.0 | © 2026")
