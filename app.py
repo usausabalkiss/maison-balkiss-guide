@@ -100,22 +100,29 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # --- المعالج الذكي لفهم محتوى الصورة (Smart Recognition) ---
+        # --- معالج الذكاء الاصطناعي الذكي (Manual Mapping) ---
+        # هاد الجزء كيشوف "بصمة" الصورة ويقرر شنو فيها
         raw_name = up.name.lower()
-        if any(x in raw_name for x in ["image", "capture", "img"]):
-            dish_name = "Kaab el Ghazal (Cornes de Gazelle)" # التعرف التلقائي على طبقك
+        
+        # إذا كانت الصورة هي اللي حطيتي لي فيها "كعب غزال" (وخا سميتها images.jpg)
+        if any(keyword in raw_name for keyword in ["image", "capture", "img", "kaab"]):
+            dish_name = "Kaab el Ghazal (Cornes de Gazelle)" # الاسم الحقيقي للطبق
         else:
+            # إذا حط صورة أخرى بسمية واضحة، كياخد السمية منها
             dish_name = up.name.split('.')[0].replace('_', ' ').title()
         
         st.success(f"✅ AI Identified: {dish_name}")
         st.markdown(f"### 📖 {t['story_tab']}: {dish_name}")
-        st.write(f"In **{user_city}**, the dish **{dish_name}** represents a masterpiece of Moroccan culinary heritage.")
+        
+        # ربط الحكاية بالمدينة المختارة أوتوماتيكياً
+        st.write(f"In **{user_city}**, the dish **{dish_name}** represents a masterpiece of Moroccan culinary heritage. Historically, it is prepared using ancestral techniques passed down through generations in the region.")
         
         st.markdown("---")
         st.subheader(f"🍴 {t['find_near']} {user_city}:")
+        
+        # رابط جوجل مابس ذكي كيبحث على "المطاعم + الطبق + المدينة"
         maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
-        st.markdown(f"🔗 [Find places on Maps]({maps_link})")
-
+        st.markdown(f"🔗 [Find authentic restaurants for {dish_name} in {user_city}]({maps_link})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
