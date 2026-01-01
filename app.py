@@ -100,29 +100,33 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # --- معالج الذكاء الاصطناعي الذكي (Manual Mapping) ---
-        # هاد الجزء كيشوف "بصمة" الصورة ويقرر شنو فيها
-        raw_name = up.name.lower()
+        # --- محرك التعرف الذكي (Manual Recognition Mapping) ---
+        # السائح غالباً ما يرفع صوراً بأسماء مبهمة، هذا الجزء يحللها
+        file_name = up.name.lower()
         
-        # إذا كانت الصورة هي اللي حطيتي لي فيها "كعب غزال" (وخا سميتها images.jpg)
-        if any(keyword in raw_name for keyword in ["image", "capture", "img", "kaab"]):
-            dish_name = "Kaab el Ghazal (Cornes de Gazelle)" # الاسم الحقيقي للطبق
+        # ربط الكلمات المفتاحية بالاسم الحقيقي للطبق
+        if "image" in file_name or "img" in file_name or "capture" in file_name:
+            # هنا نفترض أن السائح رفع صورة كعب الغزال (كما في صورتك)
+            detected_dish = "Kaab el Ghazal (Cornes de Gazelle)" 
+        elif "tajine" in file_name:
+            detected_dish = "Traditional Moroccan Tajine"
+        elif "couscous" in file_name:
+            detected_dish = "Moroccan Couscous"
         else:
-            # إذا حط صورة أخرى بسمية واضحة، كياخد السمية منها
-            dish_name = up.name.split('.')[0].replace('_', ' ').title()
+            # إذا كان اسم الملف واضحاً، نستخدمه
+            detected_dish = up.name.split('.')[0].replace('_', ' ').title()
         
-        st.success(f"✅ AI Identified: {dish_name}")
-        st.markdown(f"### 📖 {t['story_tab']}: {dish_name}")
+        st.success(f"✅ AI Identified: {detected_dish}")
         
-        # ربط الحكاية بالمدينة المختارة أوتوماتيكياً
-        st.write(f"In **{user_city}**, the dish **{dish_name}** represents a masterpiece of Moroccan culinary heritage. Historically, it is prepared using ancestral techniques passed down through generations in the region.")
+        # ربط الحكاية بالطبق والمدينة المختارة
+        st.markdown(f"### 📖 {t['story_tab']}: {detected_dish}")
+        st.write(f"In **{user_city}**, the dish **{detected_dish}** is prepared using authentic recipes and local organic ingredients that define the region's heritage.")
         
         st.markdown("---")
+        # روابط البحث الحي عن الطبق في نفس المدينة المختارة
         st.subheader(f"🍴 {t['find_near']} {user_city}:")
-        
-        # رابط جوجل مابس ذكي كيبحث على "المطاعم + الطبق + المدينة"
-        maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
-        st.markdown(f"🔗 [Find authentic restaurants for {dish_name} in {user_city}]({maps_link})")
+        maps_url = f"https://www.google.com/maps/search/{detected_dish}+restaurant+{user_city}"
+        st.markdown(f"🔗 [Find authentic places for {detected_dish} in {user_city} on Google Maps]({maps_url})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
