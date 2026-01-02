@@ -100,40 +100,42 @@ with tab2:
     
     if up:
         st.image(up, width=400)
-        
-        # تحليل اسم الملف بطريقة ذكية (Smart Labeling)
         raw_name = up.name.lower()
         
-        with st.spinner('Maison Balkiss AI is scanning... 🧠'):
-            # محرك البحث عن الأطباق بناءً على الكلمات المفتاحية
-            if any(x in raw_name for x in ["couscous", "كسكس", "1"]):
-                dish_name = "Moroccan Couscous"
-                dish_region = "All Moroccan Regions (The Friday Ritual)"
-                dish_story = "The masterpiece of Moroccan hospitality, traditionally served with seven vegetables and steaming semolina."
-            elif any(x in raw_name for x in ["tajine", "طاجين", "stew"]):
-                dish_name = "Moroccan Tajine"
-                dish_region = "Atlas & Souss Regions"
-                dish_story = "A slow-cooked savory stew named after the conical clay pot, symbolizing patience and authentic flavor."
-            elif any(x in raw_name for x in ["kaab", "gazal", "cornes", "حلوى"]):
-                dish_name = "Kaab el Ghazal (Gazelle Horns)"
-                dish_region = "Fès & Meknès"
-                dish_story = "A royal almond pastry scented with orange blossom, shaped like a crescent moon."
-            else:
-                # إيلا كانت سمية مجهولة، كياخدها هي نيت
-                dish_name = up.name.split('.')[0].title()
-                dish_region = user_city
-                dish_story = "An authentic treasure of Morocco's rich culinary heritage."
+        # مصفوفة ذكية للتعرف (حيدنا رقم 1 من الكسكس باش ما يغلطش)
+        dish_found = None
+        
+        if any(x in raw_name for x in ["couscous", "كسكس"]):
+            dish_found = "Couscous"
+        elif any(x in raw_name for x in ["kaab", "gazal", "cornes", "sweet", "حلوى", "كعب"]):
+            dish_found = "Kaab el Ghazal"
+        elif any(x in raw_name for x in ["tajine", "طاجين", "stew"]):
+            dish_found = "Tajine"
 
-            # عرض النتائج بشكل أنيق
-            st.success(f"✨ AI Identification: {dish_name}")
-            st.info(f"📍 **Origin:** {dish_region}")
-            st.write(f"**The Story:** {dish_story}")
+        # إيلا ما عرفناش الطبق من السمية، كنسولوا السائح (حل احترافي)
+        if not dish_found:
+            st.info("🔍 AI is looking... Help us be precise:")
+            dish_found = st.selectbox("What is this dish?", ["Choose...", "Couscous", "Kaab el Ghazal", "Tajine", "Other"])
 
-        st.markdown("---")
-        # ربط حي بـ Maps فـ المدينة اللي ختار السائح
-        st.subheader(f"🍴 {t['find_near']} {user_city}:")
-        maps_link = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
-        st.markdown(f"🔗 [Find the best {dish_name} in {user_city} on Maps]({maps_link})")
+        if dish_found and dish_found != "Choose...":
+            with st.spinner('Fetching the story... 🧠'):
+                if dish_found == "Couscous":
+                    name, reg, story = "Moroccan Couscous", "All Regions", "The masterpiece of Moroccan hospitality, traditionally served with seven vegetables."
+                elif dish_found == "Kaab el Ghazal":
+                    name, reg, story = "Kaab el Ghazal", "Fès & Meknès", "A royal almond pastry scented with orange blossom, shaped like a crescent."
+                elif dish_found == "Tajine":
+                    name, reg, story = "Moroccan Tajine", "Atlas & Souss", "A slow-cooked savory stew named after the conical clay pot."
+                else:
+                    name, reg, story = dish_found, user_city, "An authentic treasure of Morocco's culinary heritage."
+
+                st.success(f"✨ {t['story_tab']}: {name}")
+                st.info(f"📍 **Origin:** {reg}")
+                st.write(f"**Story:** {story}")
+
+                st.markdown("---")
+                st.subheader(f"🍴 {t['find_near']} {user_city}:")
+                maps_link = f"http://googleusercontent.com/maps.google.com/q={name}+restaurant+{user_city}"
+                st.markdown(f"🔗 [Find {name} in {user_city} on Maps]({maps_link})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
