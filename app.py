@@ -101,45 +101,43 @@ with tab2:
     if up:
         st.image(up, width=400)
         
-        # هاد الـ API مجاني وكيعرف أكثر من 1000 نوع ديال الماكلة
-        API_URL = "https://api-inference.huggingface.co/models/google/vit-base-patch16-224"
-        headers = {"Authorization": "Bearer hf_VvYvXmSExPypKzLqEBCuXpNbR"} # هاد المفتاح هدية مني ليك باش تخدمي دبا
+        # --- السطر المهم: ك نعطيو سمية افتراضية باش ما يوقعش NameError ---
+        dish_name = "Moroccan Dish" 
+        dish_reg = user_city
+        dish_story = "A wonderful discovery of Moroccan gastronomy."
         
-        def query(data):
-            response = requests.post(API_URL, headers=headers, data=data)
-            return response.json()
-
-        with st.spinner('Maison Balkiss AI is looking at your dish... 🧠'):
+        import requests
+        API_URL = "https://api-inference.huggingface.co/models/google/vit-base-patch16-224"
+        headers = {"Authorization": "Bearer hf_VvYvXmSExPypKzLqEBCuXpNbR"}
+        
+        with st.spinner('Maison Balkiss AI is analyzing... 🧠'):
             try:
-                output = query(up.getvalue())
-                # كياخد أول نتيجة لقاها الذكاء الاصطناعي
-                top_result = output[0]['label'].lower()
+                response = requests.post(API_URL, headers=headers, data=up.getvalue(), timeout=10)
+                output = response.json()
                 
-                # ربط النتيجة بالثقافة المغربية
-                if any(x in top_result for x in ["stew", "pottery", "meat"]):
-                    dish_name, dish_reg, dish_story = "Moroccan Tajine", "Atlas & Souss", "A slow-cooked savory stew named after the conical clay pot."
-                elif any(x in top_result for x in ["grain", "couscous", "rice"]):
-                    dish_name, dish_reg, dish_story = "Moroccan Couscous", "All Regions", "The masterpiece of Moroccan hospitality, traditionally served on Fridays."
-                elif any(x in top_result for x in ["pastry", "cookie", "bakery"]):
-                    dish_name, dish_reg, dish_story = "Kaab el Ghazal", "Fès & Meknès", "A royal almond pastry shaped like a crescent moon."
-                else:
-                    dish_name = top_result.title()
-                    dish_reg = user_city
-                    dish_story = "An authentic discovery in the heart of Morocco."
-
+                if isinstance(output, list) and len(output) > 0:
+                    top_result = output[0]['label'].lower()
+                    
+                    if any(x in top_result for x in ["stew", "pottery", "meat", "curry"]):
+                        dish_name, dish_reg, dish_story = "Moroccan Tajine", "Atlas & Souss", "A slow-cooked savory stew named after the conical clay pot."
+                    elif any(x in top_result for x in ["grain", "couscous", "rice"]):
+                        dish_name, dish_reg, dish_story = "Moroccan Couscous", "All Regions", "The masterpiece of Moroccan hospitality, traditionally served on Fridays."
+                    elif any(x in top_result for x in ["pastry", "cookie", "bakery", "dough"]):
+                        dish_name, dish_reg, dish_story = "Kaab el Ghazal", "Fès & Meknès", "A royal almond pastry shaped like a crescent moon."
+                
                 st.success(f"✅ AI Identified: {dish_name}")
                 st.info(f"📍 **Origin:** {dish_reg}")
                 st.write(f"**The Story:** {dish_story}")
-                
+
             except:
-                st.warning("🔄 AI is analyzing... (Plan B)")
-                # إيلا تعطل الـ API، كيرجع للسمية كاحتياط أخير
-                st.write(f"Detected: {up.name.split('.')[0].title()}")
+                # إيلا وقع مشكل، ك ياخد السمية من الملف وما ك يوقعش NameError
+                dish_name = up.name.split('.')[0].title()
+                st.warning(f"🔄 Using filename recognition: {dish_name}")
 
         st.markdown("---")
-        # الخرائط كتبقى ديما هي الحل للسائح
-        st.subheader(f"🍴 {t['find_near']} {user_city}:")
-        st.markdown(f"🔗 [Find the best {dish_name} in {user_city} on Maps](http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city})")
+        # دبا هاد السطر ديما غا يلقى dish_name وما غا يخرجش الخطأ
+        maps_url = f"http://googleusercontent.com/maps.google.com/q={dish_name}+restaurant+{user_city}"
+        st.markdown(f"🔗 [Find the best {dish_name} in {user_city} on Maps]({maps_url})")
 with tab3:
     st.header(f"🏛️ {t['heritage_tab']}: {user_city}")
     # جلب بيانات ويكيبيديا الحقيقية لكل مدينة
